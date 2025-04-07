@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Medical App</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Custom scrollbar for chat (optional) */
+        #chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+        #chat-messages::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        #chat-messages::-webkit-scrollbar-thumb {
+            background: #cbd5e1; /* Tailwind gray-300 */
+            border-radius: 10px;
+        }
+        #chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; /* Tailwind gray-400 */
+        }
+        /* Simple loading indicator */
+        .loader {
+            border: 4px solid #f3f3f3; /* Light grey */
+            border-top: 4px solid #3498db; /* Blue */
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            margin: 10px auto; /* Center horizontally */
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Ensure hidden sections don't take up space */
+        .hidden-section {
+            display: none;
+        }
+        /* Style for preformatted text from AI */
+        .ai-reply pre {
+            white-space: pre-wrap; /* Allows wrapping */
+            word-wrap: break-word; /* Breaks long words */
+            background-color: #f9fafb; /* bg-gray-50 */
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            margin-top: 5px;
+        }
+        .ai-reply strong, .ai-reply b {
+             font-weight: 600; /* semibold */
+        }
+        .ai-reply ul, .ai-reply ol {
+            margin-left: 20px;
+            list-style: revert; /* Use default list styles */
+            margin-top: 5px;
+            margin-bottom: 5px;
+        }
+
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-4xl min-h-screen flex flex-col">
+
+        <!-- Header / Highlights -->
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Health Assistant</h1>
+            <div class="flex justify-center space-x-4 mb-6">
+                <span class="bg-emerald-100 text-emerald-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded">🚀 Top Hit: AI Diagnosis Accuracy 92%</span>
+                <span class="bg-sky-100 text-sky-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded">📈 Top Set: 150+ Daily Consultations</span>
+            </div>
+        </header>
+
+        <main class="flex-grow">
+            <!-- === HOME SECTION === -->
+            <section id="home-section">
+                <p class="text-center text-gray-600 mb-8">Choose how you'd like to get assistance:</p>
+                <div class="flex flex-col md:flex-row justify-center items-center gap-6">
+                    <button id="btn-ai-doctor" class="w-full md:w-64 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-lg shadow-md transition duration-150 ease-in-out text-lg flex items-center justify-center space-x-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                        </svg>
+                        <span>AI Doctor</span>
+                    </button>
+                    <button id="btn-real-doctor" class="w-full md:w-64 bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg shadow-md transition duration-150 ease-in-out text-lg flex items-center justify-center space-x-2">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                           <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                         </svg>
+                         <span>Real Doctor</span>
+                    </button>
+                </div>
+                            <!-- How to Use Section -->
+                            <div class="mt-8 p-6 bg-white rounded-lg shadow-md">
+                                <h2 class="text-xl font-semibold text-gray-700 mb-4 text-center">How to Use This Website</h2>
+                                <p class="text-gray-600 mb-4">
+                                    Welcome! This website offers two main features:
+                                </p>
+                                <ul class="list-disc list-inside text-gray-600 mb-4">
+                                    <li>
+                                        <b>🤖 AI Doctor:</b> Get preliminary medical advice from our AI assistant. Describe your symptoms and upload any relevant documents.
+                                    </li>
+                                    <li>
+                                        <b>👨‍⚕️ Real Doctor:</b> Browse a list of available doctors and book an appointment.
+                                    </li>
+                                </ul>
+                         
+                            </div>
+                 <button id="btn-back-home" class="mt-8 text-blue-600 hover:text-blue-800 mx-auto block hidden-section">← Back to Home</button>
+           
+                </section>
+
+            <!-- === AI DOCTOR SECTION === -->
+            <section id="ai-doctor-section" class="hidden-section bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4 text-center">AI Medical Assistant</h2>
+
+                <!-- Chat Interface -->
+                <div id="chat-container" class="border border-gray-200 rounded-lg overflow-hidden flex flex-col h-full w-full">
+                    <div id="chat-messages" class="flex-grow overflow-y-auto p-4 space-y-4 bg-gray-50">
+                        <!-- Initial Prompt Area -->
+                        <div id="initial-prompt-area" class="p-4 border border-blue-200 bg-blue-50 rounded-lg">
+                            <p class="font-medium text-gray-700 mb-2">Please describe your medical problem:</p>
+                            <textarea id="problem-description" rows="4" class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., I have a persistent cough, slight fever, and headache..."></textarea>
+
+                            <div class="mt-3">
+                                <label for="file-upload" class="block text-sm font-medium text-gray-700 mb-1">Upload relevant documents (optional):</label>
+                                <div id="drag-drop-area" class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center bg-gray-100 cursor-pointer">
+                                    <p class="text-gray-500">Drag & drop files here or click to upload</p>
+                                    <input type="file" id="file-upload" name="file-upload" class="hidden" multiple>
+                                </div>
+                                <p class="mt-1 text-xs text-gray-500">PDF, JPG, PNG accepted (Upload functionality is demo only).</p>
+                            </div>
+
+                            <button id="btn-submit-problem" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out flex items-center justify-center">
+                                Submit to AI
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                </svg>
+                            </button>
+                            <div id="initial-loader" class="loader hidden-section"></div> <!-- Loader for initial submission -->
+                        </div>
+                        <!-- Chat messages will be appended here -->
+                        <div class="text-center text-gray-500 text-sm py-2" id="chat-start-message">Start by describing your problem above.</div>
+                    </div>
+
+                    <!-- Follow-up Chat Input Area (Initially Hidden) -->
+                    <div id="chat-input-area" class="p-4 border-t border-gray-200 bg-white hidden-section">
+                        <div class="flex items-center space-x-2">
+                            <input type="text" id="chat-input" class="flex-grow p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" placeholder="Ask a follow-up question...">
+                            <button id="btn-send-chat" class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-md">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="followup-loader" class="loader hidden-section"></div> <!-- Loader for follow-up -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- === REAL DOCTOR SECTION === -->
+            <section id="real-doctor-section" class="hidden-section bg-white p-6 rounded-lg shadow-lg">
+                 <h2 class="text-2xl font-semibold text-gray-700 mb-6 text-center">Find a Doctor</h2>
+
+                 <!-- Doctor List -->
+                 <div class="space-y-4 mb-8">
+                     <!-- Mock Doctor 1 -->
+                     <div class="border border-gray-200 rounded-lg p-4 flex flex-col md:flex-row justify-between items-start md:items-center">
+                         <div>
+                             <h3 class="text-lg font-semibold text-gray-800">Dr. Evelyn Reed</h3>
+                             <p class="text-gray-600">Cardiologist</p>
+                             <p class="text-sm text-gray-500 mt-1">Availability: Mon, Wed, Fri (9am - 3pm)</p>
+                         </div>
+                         <div class="mt-2 md:mt-0 text-right">
+                             <span class="text-sm font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded">Free Initial Consultation</span>
+                         </div>
+                     </div>
+                     <!-- Mock Doctor 2 -->
+                     <div class="border border-gray-200 rounded-lg p-4 flex flex-col md:flex-row justify-between items-start md:items-center">
+                         <div>
+                             <h3 class="text-lg font-semibold text-gray-800">Dr. Ben Carter</h3>
+                             <p class="text-gray-600">General Practitioner</p>
+                             <p class="text-sm text-gray-500 mt-1">Availability: Tue, Thu (1pm - 5pm), Sat (10am - 12pm)</p>
+                         </div>
+                          <div class="mt-2 md:mt-0 text-right">
+                             <span class="text-sm font-medium text-blue-700 bg-blue-100 px-2 py-0.5 rounded">Paid Appointment</span>
+                         </div>
+                     </div>
+                     <!-- Mock Doctor 3 -->
+                     <div class="border border-gray-200 rounded-lg p-4 flex flex-col md:flex-row justify-between items-start md:items-center">
+                         <div>
+                             <h3 class="text-lg font-semibold text-gray-800">Dr. Anya Sharma</h3>
+                             <p class="text-gray-600">Dermatologist</p>
+                             <p class="text-sm text-gray-500 mt-1">Availability: Mon - Fri (10am - 4pm)</p>
+                         </div>
+                          <div class="mt-2 md:mt-0 text-right">
+                             <span class="text-sm font-medium text-blue-700 bg-blue-100 px-2 py-0.5 rounded">Paid Appointment</span>
+                         </div>
+                     </div>
+                     <!-- Mock Doctor 4 -->
+                     <div class="border border-gray-200 rounded-lg p-4 flex flex-col md:flex-row justify-between items-start md:items-center">
+                         <div>
+                             <h3 class="text-lg font-semibold text-gray-800">Dr. Ken Rodriguez</h3>
+                             <p class="text-gray-600">Pediatrician</p>
+                             <p class="text-sm text-gray-500 mt-1">Availability: Mon, Wed, Fri (9am - 3pm)</p>
+                         </div>
+                         <div class="mt-2 md:mt-0 text-right">
+                             <span class="text-sm font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded">Free Initial Consultation</span>
+                         </div>
+                     </div>
+                     <!-- Mock Doctor 5 -->
+                     <div class="border border-gray-200 rounded-lg p-4 flex flex-col md:flex-row justify-between items-start md:items-center">
+                         <div>
+                             <h3 class="text-lg font-semibold text-gray-800">Dr. Ali Khan</h3>
+                             <p class="text-gray-600">Oncologist</p>
+                             <p class="text-sm text-gray-500 mt-1">Availability: Tue, Thu (1pm - 5pm), Sat (10am - 12pm)</p>
+                         </div>
+                          <div class="mt-2 md:mt-0 text-right">
+                             <span class="text-sm font-medium text-blue-700 bg-blue-100 px-2 py-0.5 rounded">Paid Appointment</span>
+                         </div>
+                     </div>
+                     <!-- Mock Doctor 6 -->
+                     <div class="border border-gray-200 rounded-lg p-4 flex flex-col md:flex-row justify-between items-start md:items-center">
+                         <div>
+                             <h3 class="text-lg font-semibold text-gray-800">Dr. Maria Gomez</h3>
+                             <p class="text-gray-600">ENT Specialist</p>
+                             <p class="text-sm text-gray-500 mt-1">Availability: Mon - Fri (10am - 4pm)</p>
+                         </div>
+                          <div class="mt-2 md:mt-0 text-right">
+                             <span class="text-sm font-medium text-blue-700 bg-blue-100 px-2 py-0.5 rounded">Paid Appointment</span>
+                         </div>
+                     </div>
+                     <!-- Mock Doctor 7 -->
+                     <div class="border border-gray-200 rounded-lg p-4 flex flex-col md:flex-row justify-between items-start md:items-center">
+                         <div>
+                             <h3 class="text-lg font-semibold text-gray-800">Dr. Hiroki Tanaka</h3>
+                             <p class="text-gray-600">Neurologist</p>
+                             <p class="text-sm text-gray-500 mt-1">Availability: Mon, Wed, Fri (2pm - 6pm)</p>
+                         </div>
+                         <div class="mt-2 md:mt-0 text-right">
+                             <span class="text-sm font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded">Free Initial Consultation</span>
+                         </div>
+                     </div>
+                      <!-- Mock Doctor 8 -->
+                     <div class="border border-gray-200 rounded-lg p-4 flex flex-col md:flex-row justify-between items-start md:items-center">
+                         <div>
+                             <h3 class="text-lg font-semibold text-gray-800">Dr. Emily White</h3>
+                             <p class="text-gray-600">Gastroenterologist</p>
+                             <p class="text-sm text-gray-500 mt-1">Availability: Tue, Thu (9am - 1pm), Sat (1pm - 3pm)</p>
+                         </div>
+                          <div class="mt-2 md:mt-0 text-right">
+                             <span class="text-sm font-medium text-blue-700 bg-blue-100 px-2 py-0.5 rounded">Paid Appointment</span>
+                         </div>
+                     </div>
+                      <!-- Mock Doctor 9 -->
+                     <div class="border border-gray-200 rounded-lg p-4 flex flex-col md:flex-row justify-between items-start md:items-center">
+                         <div>
+                             <h3 class="text-lg font-semibold text-gray-800">Dr. Samuel Black</h3>
+                             <p class="text-gray-600">Urologist</p>
+                             <p class="text-sm text-gray-500 mt-1">Availability: Mon - Fri (8am - 12pm)</p>
+                         </div>
+                          <div class="mt-2 md:mt-0 text-right">
+                             <span class="text-sm font-medium text-blue-700 bg-blue-100 px-2 py-0.5 rounded">Paid Appointment</span>
+                         </div>
+                     </div>
+                      <!-- Mock Doctor 10 -->
+                     <div class="border border-gray-200 rounded-lg p-4 flex flex-col md:flex-row justify-between items-start md:items-center">
+                         <div>
+                             <h3 class="text-lg font-semibold text-gray-800">Dr. Isabella Green</h3>
+                             <p class="text-gray-600">Psychiatrist</p>
+                             <p class="text-sm text-gray-500 mt-1">Availability: Mon, Wed, Thu (1pm - 5pm)</p>
+                         </div>
+                         <div class="mt-2 md:mt-0 text-right">
+                             <span class="text-sm font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded">Free Initial Consultation</span>
+                         </div>
+                     </div>
+                 </div>
+
+                 <!-- Booking System -->
+                 <div class="border-t border-gray-200 pt-6">
+                     <h3 class="text-xl font-semibold text-gray-700 mb-4 text-center">Book an Appointment</h3>
+                     <form id="booking-form" class="space-y-4 max-w-md mx-auto">
+                         <div>
+                             <label for="name" class="block text-sm font-medium text-gray-700">Your Name</label>
+                             <input type="text" id="name" name="name" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                         </div>
+                         <div>
+                             <label for="email" class="block text-sm font-medium text-gray-700">Your Email</label>
+                             <input type="email" id="email" name="email" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                         </div>
+                         <div>
+                             <label for="doctor" class="block text-sm font-medium text-gray-700">Select Doctor</label>
+                             <select id="doctor" name="doctor" required class="mt-1 block w-full p-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                 <option value="Dr. Evelyn Reed">Dr. Evelyn Reed (Cardiologist)</option>
+                                 <option value="Dr. Ben Carter">Dr. Ben Carter (GP)</option>
+                                 <option value="Dr. Anya Sharma">Dr. Anya Sharma (Dermatologist)</option>
+                                 <option value="Dr. Ken Rodriguez">Dr. Ken Rodriguez (Pediatrician)</option>
+                                 <option value="Dr. Ali Khan">Dr. Ali Khan (Oncologist)</option>
+                                 <option value="Dr. Maria Gomez">Dr. Maria Gomez (ENT Specialist)</option>
+                                  <option value="Dr. Hiroki Tanaka">Dr. Hiroki Tanaka (Neurologist)</option>
+                                  <option value="Dr. Emily White">Dr. Emily White (Gastroenterologist)</option>
+                                  <option value="Dr. Samuel Black">Dr. Samuel Black (Urologist)</option>
+                                  <option value="Dr. Isabella Green">Dr. Isabella Green (Psychiatrist)</option>
+                             </select>
+                         </div>
+                         <div>
+                             <label for="datetime" class="block text-sm font-medium text-gray-700">Preferred Date & Time</label>
+                             <input type="datetime-local" id="datetime" name="datetime" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                         </div>
+                         <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out">Request Booking</button>
+                          <p id="booking-status" class="text-center text-sm mt-2"></p>
+                     </form>
+                 </div>
+
+                 <!-- Bonus: Chart Placeholder -->
+                 <div class="mt-10 border-t border-gray-200 pt-6">
+                     <h3 class="text-xl font-semibold text-gray-700 mb-4 text-center">Analytics (Placeholder)</h3>
+                     <div class="bg-white p-4 rounded-lg shadow">
+                         <canvas id="analytics-chart" width="400" height="200"></canvas>
+                     </div>
+                 </div>
+
+            </section>
+        </main>
+
+        <!-- Footer (Optional) -->
+        <footer class="text-center mt-12 text-gray-500 text-sm">
+            Disclaimer: This application is for demonstration purposes only. Always consult a qualified healthcare professional for medical advice.
+        </footer>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- DOM Elements ---
+        const homeSection = document.getElementById('home-section');
+        const aiDoctorSection = document.getElementById('ai-doctor-section');
+        const realDoctorSection = document.getElementById('real-doctor-section');
+        const btnAiDoctor = document.getElementById('btn-ai-doctor');
+        const btnRealDoctor = document.getElementById('btn-real-doctor');
+        const btnBackHome = document.getElementById('btn-back-home');
+
+        // AI Chat Elements
+        const chatContainer = document.getElementById('chat-container');
+        const chatMessages = document.getElementById('chat-messages');
+        const initialPromptArea = document.getElementById('initial-prompt-area');
+        const problemDescriptionInput = document.getElementById('problem-description');
+        const fileUploadInput = document.getElementById('file-upload');
+        const btnSubmitProblem = document.getElementById('btn-submit-problem');
+        const chatInputArea = document.getElementById('chat-input-area');
+        const chatInput = document.getElementById('chat-input');
+        const btnSendChat = document.getElementById('btn-send-chat');
+        const chatStartMessage = document.getElementById('chat-start-message');
+        const initialLoader = document.getElementById('initial-loader');
+        const followupLoader = document.getElementById('followup-loader');
+
+
+        // Real Doctor Elements
+        const bookingForm = document.getElementById('booking-form');
+        const bookingStatus = document.getElementById('booking-status');
+
+        // Chart Element
+        const chartCanvas = document.getElementById('analytics-chart');
+
+        // --- State ---
+        let currentSection = 'home'; // 'home', 'ai', 'real'
+        let uploadedFileNames = []; // Track uploaded file names
+
+        // --- Functions ---
+
+        function showSection(sectionId) {
+            homeSection.classList.add('hidden-section');
+            aiDoctorSection.classList.add('hidden-section');
+            realDoctorSection.classList.add('hidden-section');
+            btnBackHome.classList.add('hidden-section'); // Hide back button by default
+
+            if (sectionId === 'home') {
+                homeSection.classList.remove('hidden-section');
+                currentSection = 'home';
+            } else {
+                const sectionToShow = document.getElementById(sectionId);
+                if (sectionToShow) {
+                    sectionToShow.classList.remove('hidden-section');
+                    btnBackHome.classList.remove('hidden-section'); // Show back button
+                    currentSection = sectionId === 'ai-doctor-section' ? 'ai' : 'real';
+                } else {
+                     // Fallback to home if ID is invalid
+                    homeSection.classList.remove('hidden-section');
+                    currentSection = 'home';
+                }
+            }
+            // Scroll to top when changing sections
+            window.scrollTo(0, 0);
+        }
+
+         function displayMessage(sender, text) {
+             const messageDiv = document.createElement('div');
+             messageDiv.classList.add('p-3', 'rounded-lg', 'max-w-[85%]', 'break-words'); // Allow long words to break
+
+             // Simple Markdown-like formatting for bold and lists (makes Gemini output look better)
+             text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // Bold
+             text = text.replace(/\n\*/g, '\n•'); // Simple bullet points (basic)
+              // Replace markdown lists with HTML lists (more robust)
+             text = text.replace(/^\s*[\*\-]\s+(.*)/gm, '<li>$1</li>');
+             text = text.replace(/(<li>.*<\/li>\s*)+/g, '<ul>$&</ul>'); // Wrap consecutive LIs in UL
+
+
+             if (sender === 'user') {
+                 messageDiv.classList.add('bg-blue-100', 'text-blue-900', 'ml-auto'); // User message on the right
+                 messageDiv.textContent = text; // Use textContent for user input to prevent XSS
+             } else { // assistant
+                 messageDiv.classList.add('bg-gray-200', 'text-gray-800', 'mr-auto', 'ai-reply'); // AI message on the left
+                 // Use innerHTML for AI response to render basic formatting like bold/lists
+                 // WARNING: Only do this if you trust the source (Gemini) or sanitize it server-side.
+                 // For this demo, we'll allow basic HTML rendering.
+                 messageDiv.innerHTML = `<pre>${text}</pre>`; // Wrap in pre for formatting, use innerHTML
+                 // Remove loader if it was visible
+                 initialLoader.classList.add('hidden-section');
+                 followupLoader.classList.add('hidden-section');
+             }
+
+              // Remove the initial "Start by describing..." message if it exists
+              if(chatStartMessage) {
+                    chatStartMessage.remove();
+              }
+
+             chatMessages.appendChild(messageDiv);
+             // Scroll to the bottom of the chat
+             chatMessages.scrollTop = chatMessages.scrollHeight;
+         }
+
+        // Function to upload files first
+        async function uploadFiles() {
+            if (fileUploadInput.files.length === 0) {
+                return []; // No files to upload
+            }
+            
+            const formData = new FormData();
+            const uploadedFiles = [];
+            
+            // Upload each file and get its filename from server
+            for (let i = 0; i < fileUploadInput.files.length; i++) {
+                formData.append('file', fileUploadInput.files[i]);
+                
+                try {
+                    const response = await fetch('/upload_file', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.status === 'success') {
+                            uploadedFiles.push(data.filename);
+                        }
+                    }
+                    
+                    // Clear the formData for next file
+                    formData.delete('file');
+                } catch (error) {
+                    console.error("File upload error:", error);
+                }
+            }
+            
+            // Store uploaded file names for future use
+            uploadedFileNames = uploadedFiles;
+            return uploadedFiles;
+        }
+
+        async function handleAiSubmit(isInitialSubmit = false) {
+            let userMessage = null;
+            let problemDesc = null;
+            let loaderElement = null;
+            
+            if (isInitialSubmit) {
+                loaderElement = initialLoader;
+                problemDesc = problemDescriptionInput.value.trim();
+                if (!problemDesc) {
+                    alert("Please describe your medical problem.");
+                    return;
+                }
+                displayMessage('user', problemDesc);
+                
+                // Show loader before file upload
+                loaderElement.classList.remove('hidden-section');
+                
+                // First upload any files
+                const uploadedFiles = await uploadFiles();
+                
+                // Create payload with description and file info
+                const payload = { 
+                    problem_description: problemDesc,
+                    file_info: uploadedFiles
+                };
+                
+                // Add a small note about the files in the chat if any were uploaded
+                if (uploadedFiles.length > 0) {
+                    const fileInfoDiv = document.createElement('div');
+                    const fileNames = uploadedFiles.join(', ');
+                    fileInfoDiv.textContent = `(Files uploaded: ${fileNames})`;
+                    fileInfoDiv.classList.add('text-xs', 'text-gray-500', 'italic', 'ml-auto', 'max-w-[85%]', 'text-right', 'mb-2');
+                    chatMessages.appendChild(fileInfoDiv);
+                }
+                
+                try {
+                    const response = await fetch('/ai_chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    loaderElement.classList.add('hidden-section'); // Hide loader
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({reply: "An unknown error occurred."}));
+                        throw new Error(errorData.reply || `HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    displayMessage('assistant', data.reply);
+                    
+                    // After successful submission, hide initial prompt and show follow-up input
+                    initialPromptArea.classList.add('hidden-section');
+                    chatInputArea.classList.remove('hidden-section');
+                    chatInput.focus(); // Focus the follow-up input
+                    
+                } catch (error) {
+                    console.error("Chat Error:", error);
+                    displayMessage('assistant', `Error: ${error.message}. Please try again later.`);
+                    loaderElement.classList.add('hidden-section');
+                }
+                
+            } else { // Follow-up message
+                loaderElement = followupLoader;
+                userMessage = chatInput.value.trim();
+                if (!userMessage) return; // Don't send empty messages
+                
+                displayMessage('user', userMessage);
+                chatInput.value = ''; // Clear input field
+                
+                // Show loader
+                loaderElement.classList.remove('hidden-section');
+                
+                // Include the file info from previous uploads in follow-up messages
+                const payload = { 
+                    message: userMessage,
+                    file_info: uploadedFileNames // Include previously uploaded files
+                };
+                
+                try {
+                    const response = await fetch('/ai_chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    loaderElement.classList.add('hidden-section'); // Hide loader
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({reply: "An unknown error occurred."}));
+                        throw new Error(errorData.reply || `HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    displayMessage('assistant', data.reply);
+                    
+                } catch (error) {
+                    console.error("Chat Error:", error);
+                    displayMessage('assistant', `Error: ${error.message}. Please try again later.`);
+                    loaderElement.classList.add('hidden-section');
+                }
+            }
+        }
+
+
+        async function handleBookingSubmit(event) {
+            event.preventDefault(); // Prevent default form submission
+            bookingStatus.textContent = 'Submitting booking request...';
+            bookingStatus.className = 'text-center text-sm mt-2 text-blue-600'; // Reset classes and set loading style
+
+            const formData = new FormData(bookingForm);
+
+            try {
+                 const response = await fetch('/book_appointment', {
+                     method: 'POST',
+                     body: formData // Send as form data
+                 });
+
+                 const result = await response.json();
+
+                 if (response.ok && result.status === 'success') {
+                     bookingStatus.textContent = result.message;
+                     bookingStatus.className = 'text-center text-sm mt-2 text-green-600';
+                     bookingForm.reset(); // Clear the form
+                 } else {
+                     throw new Error(result.message || 'Booking failed. Please try again.');
+                 }
+
+            } catch (error) {
+                 console.error("Booking Error:", error);
+                 bookingStatus.textContent = `Error: ${error.message}`;
+                 bookingStatus.className = 'text-center text-sm mt-2 text-red-600';
+            }
+        }
+
+        function initChart() {
+            if (chartCanvas) {
+                const ctx = chartCanvas.getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar', // Example: bar chart
+                    data: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        datasets: [{
+                            label: 'Consultations per Day (Demo)',
+                            data: [12, 19, 8, 15, 10, 5, 13], // Placeholder data
+                            backgroundColor: 'rgba(59, 130, 246, 0.5)', // blue-500 with opacity
+                            borderColor: 'rgba(37, 99, 235, 1)', // blue-700
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                         maintainAspectRatio: false, // Allow chart to fill container height
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            } else {
+                console.warn("Chart canvas element not found");
+            }
+        }
+
+
+        // --- Event Listeners ---
+        btnAiDoctor.addEventListener('click', () => showSection('ai-doctor-section'));
+        btnRealDoctor.addEventListener('click', () => {
+            showSection('real-doctor-section');
+            // Initialize chart only when the section is shown
+             // Check if chart already exists to avoid re-initialization if needed
+             if (!window.myAnalyticsChart && chartCanvas) {
+                 window.myAnalyticsChart = initChart(); // Store chart instance if needed
+             } else if (!window.myAnalyticsChart) {
+                 initChart(); // Or just re-run initChart if instance not stored
+             }
+        });
+        btnBackHome.addEventListener('click', () => showSection('home-section'));
+
+        // File Upload Listeners
+        const dragDropArea = document.getElementById('drag-drop-area');
+        dragDropArea.addEventListener('click', () => {
+            fileUploadInput.click(); // Trigger file input when clicking the drag area
+        });
+
+        fileUploadInput.addEventListener('change', (e) => {
+            const files = e.target.files;
+            if (files.length > 0) {
+                const fileNames = Array.from(files).map(file => file.name).join(', ');
+                dragDropArea.querySelector('p').textContent = `Selected: ${fileNames}`;
+            } else {
+                dragDropArea.querySelector('p').textContent = 'Drag & drop files here or click to upload';
+            }
+        });
+
+        // Drag and drop functionality
+        dragDropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dragDropArea.classList.add('bg-gray-200');
+        });
+
+        dragDropArea.addEventListener('dragleave', () => {
+            dragDropArea.classList.remove('bg-gray-200');
+        });
+
+        dragDropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dragDropArea.classList.remove('bg-gray-200');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileUploadInput.files = files;
+                const fileNames = Array.from(files).map(file => file.name).join(', ');
+                dragDropArea.querySelector('p').textContent = `Selected: ${fileNames}`;
+            }
+        });
+
+        // AI Chat Listeners
+        btnSubmitProblem.addEventListener('click', () => handleAiSubmit(true));
+        btnSendChat.addEventListener('click', () => handleAiSubmit(false));
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) { // Send on Enter, allow Shift+Enter for newline
+                e.preventDefault(); // Prevent default Enter behavior (like newline in input)
+                handleAiSubmit(false);
+            }
+        });
+
+        // Booking Form Listener
+        bookingForm.addEventListener('submit', handleBookingSubmit);
+
+
+        // --- Initial Setup ---
+        showSection('home-section'); // Show home section by default on load
+
+    </script>
+
+</body>
+</html>
